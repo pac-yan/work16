@@ -15,12 +15,23 @@ int server_handshake(int *to_client) {
     printf("Server error: %s\n", strerror(errno));
 
   int from_client = open(ACK, O_RDONLY, 0600);
+  remove(ACK);
 
-  
+  //opening private fifo
   char *fifo_name = (char *)calloc(BUFFER_SIZE, sizeof(char));
   read(from_client, fifo_name, BUFFER_SIZE);
-  *to_client = open(fifo_name, O0600);
-  return 0;
+  *to_client = open(fifo_name, O_WRONLY, 0600);
+
+  //send response to client
+  int i = 1;
+  write(*to_client, &i, sizeof(int));
+
+  //confirm client's response
+  read(from_client, &i, sizeof(int));
+  if (i == 2)
+    printf("Handshake complete\n");
+
+  return from_client;
 }
 
 
@@ -37,12 +48,20 @@ int client_handshake(int *to_server) {
   if (mkfifo("CLIENT", 0600))
     printf("Client error: %s\n", strerror(errno));
 
-  int from_server = open("CLIENT", 
   *to_server = open(ACK, O_WRONLY, 0600);
 
   //sending private fifo
   char *fifo_name = (char *)calloc(BUFFER_SIZE, sizeof(char));
   strcpy(fifo_name, "CLIENT");
+  write(*to_server, fifo_name, BUFFER_SIZE);
+  
+  int from_server = open("CLIENT", O_RDONLY, 0600);
 
-  return 0;
+  int message;
+  read(from_server, &message, sizeof(int));
+  remove("CLIENT");
+  message += 1;
+  write(*to_server, &message, sizeof(int));
+
+  return from_server;
 }
