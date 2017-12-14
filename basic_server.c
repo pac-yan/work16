@@ -11,7 +11,8 @@ int main() {
   while (from_client){
     char *message = (char *)calloc(BUFFER_SIZE, sizeof(char));
     read(from_client, message, BUFFER_SIZE);
-    strcat(message, " is very nice");
+    *strchr(message, '\n') = 0;
+    strcat(message, " is very nice\n");
     write(to_client, message, BUFFER_SIZE);
   }
 }

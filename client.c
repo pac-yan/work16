@@ -10,6 +10,7 @@ int main() {
   
   while (from_server){
     char *message = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    printf("Send message: ");
     fgets(message, BUFFER_SIZE, stdin);
     write(to_server, message, BUFFER_SIZE);
     read(from_server, message, BUFFER_SIZE);
